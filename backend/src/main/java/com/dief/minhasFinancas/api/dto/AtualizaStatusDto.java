@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AtualizaStatusDto {
-	 private String novoStatus;
+	 private String status;
 }

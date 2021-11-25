@@ -1,6 +1,7 @@
 package com.dief.minhasFinancas.service.impl;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,6 +31,7 @@ public class LancamentoServiceImpl  implements LancamentoService{
 	public Lancamento salvar(Lancamento lancamento) {
 		validar(lancamento);
 		lancamento.setStatus(StatusLacamento.PENDENTE);
+		lancamento.setDataCadastro(LocalDate.now());;
 		return repository.save(lancamento);
 	}
 
@@ -101,8 +103,8 @@ public class LancamentoServiceImpl  implements LancamentoService{
 	@Override
 	@Transactional(readOnly = true)
 	public BigDecimal obterSaldoPorUsuario(Long id) {
-		BigDecimal receitas =  repository.obterSaldoPorUsuarioETipo(id, TipoLancamento.RECEITA);
-		BigDecimal despesas =  repository.obterSaldoPorUsuarioETipo(id, TipoLancamento.DESPESA);
+		BigDecimal receitas =  repository.obterSaldoPorUsuarioETipo(id, TipoLancamento.RECEITA, StatusLacamento.EFETIVADO);
+		BigDecimal despesas =  repository.obterSaldoPorUsuarioETipo(id, TipoLancamento.DESPESA, StatusLacamento.EFETIVADO);
 		
 		if(receitas == null) {
 			receitas = BigDecimal.ZERO;

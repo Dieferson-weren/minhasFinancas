@@ -54,12 +54,19 @@ public class LancamentoResource {
 	@GetMapping
 	public ResponseEntity buscar(
 			@RequestParam(value = "descricao", required = false) String descricao,
+			@RequestParam(value = "tipo", required = false) String tipo,
+			@RequestParam(value = "status", required = false) String status,
 			@RequestParam(value = "mes", required = false) Integer mes,
 			@RequestParam(value = "ano", required = false) Integer ano,
 			@RequestParam("usuario") Long idUsuario
 			) {
 		Lancamento lancamentoFiltro = new Lancamento();
 		lancamentoFiltro.setDescricao(descricao);
+		if(tipo != null) {
+			lancamentoFiltro.setTipo(TipoLancamento.valueOf(tipo));
+		}
+		
+		//lancamentoFiltro.setStatus(StatusLacamento.valueOf(status));
 		lancamentoFiltro.setMes(mes);
 		lancamentoFiltro.setAno(ano);
 		Optional<Usuario> usuario = usuarioService.buscarPorId(idUsuario);
@@ -72,6 +79,12 @@ public class LancamentoResource {
 		
 		List<Lancamento> lacamentos = service.buscar(lancamentoFiltro);
 		return ResponseEntity.ok(lacamentos);
+	}
+	
+	@GetMapping("{id}")
+	public ResponseEntity buscaId(@PathVariable("id") Long id) {
+		return service.obterPorId(id).map(lancamento -> new ResponseEntity<>(converter(lancamento), HttpStatus.OK))
+				.orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
 	}
 	
 	@PutMapping("{id}")
@@ -95,12 +108,13 @@ public class LancamentoResource {
 	@PutMapping("{id}/atualiza-status")
 	public ResponseEntity atualizarStatus(@PathVariable("id") Long id, @RequestBody AtualizaStatusDto dto) {
 		return service.obterPorId(id).map(status -> {
-			StatusLacamento statusSelecionado = StatusLacamento.valueOf(dto.getNovoStatus());
-			if(statusSelecionado == null) {
-				return ResponseEntity.badRequest().body("Não foi possível alterar o status do lançamento");
-			}
-			
 			try {
+				StatusLacamento statusSelecionado = StatusLacamento.valueOf(dto.getStatus());
+				if(statusSelecionado == null) {
+					return ResponseEntity.badRequest().body("Não foi possível alterar o status do lançamento");
+				}
+			
+			
 				status.setStatus(statusSelecionado);
 				service.atualizar(status);
 				return ResponseEntity.ok(status);
@@ -142,6 +156,19 @@ public class LancamentoResource {
 		}
 		
 		return lancamento;
+	}
+	
+	private LancamentoDto converter(Lancamento lancamento) {
+		return LancamentoDto.builder()
+					.id(lancamento.getId())
+					.descricao(lancamento.getDescricao())
+					.ano(lancamento.getAno())
+					.mes(lancamento.getMes())
+					.status(lancamento.getStatus().name())
+					.tipo(lancamento.getTipo().name())
+					.usuario(lancamento.getUsuario().getId())
+					.valor(lancamento.getValor())
+					.build();
 	}
 
 }
